@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Typography, Divider, TextField, Grid, Select, MenuItem, Button } from '@material-ui/core';
-import { makeStyles, withStyles } from '@material-ui/core/styles';
+import { TextField, Grid, Select, MenuItem, Button } from '@material-ui/core';
+import { makeStyles } from '@material-ui/core/styles';
 import DateFnsUtils from '@date-io/moment';
 import {
     MuiPickersUtilsProvider,
@@ -14,7 +14,6 @@ import { Constants } from '../../common/constants';
 const useStyles = makeStyles((theme) => ({
     root: {
         width: '100%',
-        minWidth: 360,
         backgroundColor: theme.palette.background.paper,
     },
     nested: {
@@ -27,32 +26,42 @@ const useStyles = makeStyles((theme) => ({
     subHeading: {
         display: 'flex',
         justifyContent: 'space-between',
-        width: '60%'
+        // width: '60%'
     },
-    time: {
-        color: theme.palette.error.main
+    datePicker: {
+        fontSize: '12px',
+        padding: 0
+    },
+    noteText: {
+        width: '100%',
+        backgroundColor: 'white'
+    },
+    saveButton: {
+        backgroundColor: theme.palette.primary.main,
+        color: theme.palette.background.default
     }
 }));
 
-const StyledDatePicker = withStyles({
-
-})(KeyboardDatePicker);
-
-const getPriorityDropdown = (value, onChange, classes) => {
+const getPriorityDropdown = (value, onChange, classes, isPriorityOpened, setPriorityDropdownOpened) => {
     return (
-        <Select
-            value={value}
-            onChange={onChange}
-            displayEmpty
-            className={classes.selectEmpty}
-            inputProps={{ 'aria-label': 'Without label' }}
-        >
-            {
-                Constants.PRIORITY_MAPPING.map(priority => (
-                    <MenuItem key={priority.key} value={priority.name}>{priority.name}</MenuItem>
-                ))
-            }
-        </Select>
+        <React.Fragment>
+            <Select
+                defaultValue='Priority'
+                value={value}
+                onChange={onChange}
+                displayEmpty
+                className={classes.selectEmpty}
+                inputProps={{ 'aria-label': 'Without label' }}
+                onOpen={(evt) => setPriorityDropdownOpened(true)}
+            >
+                {!isPriorityOpened ? <MenuItem key='initial' value='Priority' >Priority</MenuItem>
+                    :
+                    Constants.PRIORITY_MAPPING.map(priority => (
+                        <MenuItem key={priority.key} value={priority.name}>{priority.name}</MenuItem>
+                    ))
+                }
+            </Select>
+        </React.Fragment>
     )
 }
 
@@ -61,38 +70,31 @@ const CreateNote = ({ onSave, onCancel }) => {
 
     const [noteText, setNoteText] = React.useState();
     const [date, setDate] = React.useState();
-    const [showTime, setShowTime] = React.useState(false);
-    const [showPriority, setShowPriority] = React.useState(false);
     const [time, setTime] = React.useState();
-    const [priority, setPriority] = React.useState('Low');
+    const [priority, setPriority] = React.useState();
+    const [priorityDropdownOpened, setPriorityDropdownOpened] = React.useState(false);
 
     const handleNoteTextChange = (event) => {
         setNoteText(event.target.value);
     };
 
     const handleDateChange = (event) => {
-        setDate(new Date(event.format()));
-        setShowTime(true);
+        setDate(event);
     }
 
     const handleTimeChange = (event) => {
-        console.log('event ---> ', event);
-        setTime(new Date(event.format()));
-        setShowPriority(true);
+        setTime(event);
     }
 
     const handlePriorityChange = (event) => {
-        console.log('event', event);
         setPriority(event.target.value)
     }
 
     const saveNote = () => {
-        console.log('Date :', date);
-        console.log('Time :', time);
         if (noteText && priority) {
             const noteObj = {
                 priority,
-                createdDate: new Date(),
+                createdDate: `${getDateTime(date, 'YYYY-MM-DD')}T${getDateTime(time, 'HH:mm:ss')}`,
                 text: noteText,
                 status: 'open',
                 id: Math.random()
@@ -109,21 +111,21 @@ const CreateNote = ({ onSave, onCancel }) => {
     }
 
     return (
-        <>
-            <TextField
-                id="standard-number"
-                value={noteText}
-                InputLabelProps={{
-                    shrink: true,
-                }}
-                placeholder='Enter the note here'
-                onChange={handleNoteTextChange}
-            />
-            <br />
-            <br />
-            <Divider />
-            <MuiPickersUtilsProvider utils={DateFnsUtils}>
-                <Grid container style={{ display: 'flex' }} justify="space-between">
+        <Grid container justify='space-around' spacing={4} direction='column'>
+            <Grid item xs>
+                <TextField
+                    id="standard-multiline-static"
+                    value={noteText}
+                    multiline
+                    rows={3}
+                    rowsMax={4}
+                    classes={{ root: classes.noteText }}
+                    placeholder='Enter the note here'
+                    onChange={handleNoteTextChange}
+                />
+            </Grid>
+            <Grid container justify='space-around' spacing={2} item xs={12}>
+                <MuiPickersUtilsProvider utils={DateFnsUtils}>
                     <Grid item xs={4}>
                         <KeyboardDatePicker
                             // margin="normal"
@@ -134,35 +136,38 @@ const CreateNote = ({ onSave, onCancel }) => {
                             KeyboardButtonProps={{
                                 'aria-label': 'change date',
                             }}
+                            classes={{ root: classes.datePicker }}
                         />
                     </Grid>
-                    {showTime ?
-                        <Grid item xs={4}>
-                            <KeyboardTimePicker
-                                // margin="normal"
-                                id="time-picker"
-                                value={time}
-                                format="hh:mm A"
-                                onChange={handleTimeChange}
-                                KeyboardButtonProps={{
-                                    'aria-label': 'change time',
-                                }}
-                            />
-                        </Grid> : null
-                    }
+                    <Grid item xs={4}>
+                        <KeyboardTimePicker
+                            // margin="normal"
+                            id="time-picker"
+                            value={time}
+                            format="hh:mm A"
+                            onChange={handleTimeChange}
+                            KeyboardButtonProps={{
+                                'aria-label': 'change time',
+                            }}
+                        />
+                    </Grid>
+                </MuiPickersUtilsProvider>
+                {/* </Grid> */}
+                <Grid item xs={4}>
                     {
-                        showPriority ?
-                            <Grid item xs={4}>
-                                {getPriorityDropdown(priority, handlePriorityChange, classes)}
-                            </Grid> : null
+                        getPriorityDropdown(priority, handlePriorityChange, classes, priorityDropdownOpened, setPriorityDropdownOpened)
                     }
                 </Grid>
-                <Grid style={{ display: 'flex' }} justify='flex-end'>
+            </Grid >
+            <Grid container item xs={12} justify='flex-end'>
+                <Grid item xs={3}>
                     <Button onClick={cancelNote}>Cancel</Button>
-                    <Button onClick={saveNote}>Save</Button>
                 </Grid>
-            </MuiPickersUtilsProvider>
-        </>
+                <Grid item xs={3}>
+                    <Button variant="contained" className={classes.saveButton} onClick={saveNote}>Save</Button>
+                </Grid>
+            </Grid>
+        </Grid>
     );
 }
 

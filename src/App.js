@@ -7,17 +7,12 @@ const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
   },
-  paper: {
-    padding: theme.spacing(2),
-    textAlign: 'center',
-    color: theme.palette.text.secondary,
-  },
 }));
 
 function SampleLayout({ classes }) {
   return (
-    <Grid container spacing={5}>
-      <Grid item xs={4}>
+    <Grid container spacing={4}>
+      <Grid item xs={3}>
           <NotesCard></NotesCard>
       </Grid>
     </Grid>

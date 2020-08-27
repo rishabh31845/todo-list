@@ -9,6 +9,7 @@ import {
     Grid
 } from '@material-ui/core';
 import ReceiptOutlinedIcon from '@material-ui/icons/ReceiptOutlined';
+import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
 import { NotesList, CreateNote } from '../../components'
 import { notesData } from '../../common/dummyNotes'
 import { groupItemsByKey, sortItemsByDate } from '../../common/functionalHelper';
@@ -18,8 +19,8 @@ const addNoteHeading = 'Add note here';
 
 const useStyles = makeStyles({
     root: {
-        minWidth: 340,
-        maxWidth: 340
+        minWidth: 360,
+        // maxWidth: 340
         // width: 100
     },
     bullet: {
@@ -79,7 +80,8 @@ const getSortedGroupData = (notes) => {
 const NotesCard = () => {
     const classes = useStyles();
     const [editMode, setEditMode] = React.useState(false);
-    const [notes, setNotes] = React.useState(notesData)
+    const [notes, setNotes] = React.useState(notesData);
+    const [showMore, setShowMore] = React.useState(true);
 
     const onSave = (data) => {
         const newNotes = [...notes, data]
@@ -101,32 +103,60 @@ const NotesCard = () => {
         setNotes([...notes]);
     }
 
-    console.log('notes', notes);
+    const viewMoreNotes = () => {
+        console.log('See More Button Clicked!!!')
+        setShowMore(!showMore)
+    }
 
     return (
         <Card className={classes.root}>
             <CardContent>
-                <Grid container spacing={1} direction={'column'}>
-                    <Grid item className={classes.displayCardHeading}>
-                        <ReceiptOutlinedIcon fontSize='large' />
-                        <Typography variant="caption">{noteCardHeading}</Typography>
+                <Grid container spacing={4} direction={'column'}>
+                    <Grid item xs>
+                        <Grid container spacing={1}>
+                            <Grid item xs={2}>
+                                <ReceiptOutlinedIcon fontSize='large' />
+                            </Grid>
+                            <Grid item xs>
+                                <Typography variant="subtitle1">{noteCardHeading}</Typography>
+                            </Grid>
+                        </Grid>
                     </Grid>
-                    <Grid item>
-                        {editMode ?
+
+                    {editMode ?
+                        <Grid container item spacing={1}>
                             <CreateNote
                                 onSave={onSave}
                                 onCancel={onCancel}
-                            /> :
-                            <>
+                            />
+                        </Grid>
+                        :
+                        <Grid container spacing={1} direction='column'>
+                            <Grid item xs>
                                 <BootstrapButton onClick={() => setEditMode(true)}>{addNoteHeading}</BootstrapButton>
-                                <Divider />
+                            </Grid>
+                            <Grid item xs><Divider /></Grid>
+                            <Grid container item xs>
                                 <NotesList handleCheckList={handleCheckList} notesData={getSortedGroupData(notes)}></NotesList>
-                            </>
-                        }
-                    </Grid>
+                            </Grid>
+                            {notes.length > 4 ?
+                                < Grid container item xs={12} justify='flex-end'>
+                                    <Button
+                                        color="primary"
+                                        className={classes.button}
+                                        endIcon={<ArrowDownwardIcon fontSize='small' />}
+                                        onClick={viewMoreNotes}
+                                    >
+                                        {showMore ? 'See All Notes' : 'Hide Notes'}
+                                    </Button>
+                                </Grid>
+                                : null
+                            }
+                        </Grid>
+                    }
                 </Grid>
             </CardContent>
-        </Card>
+        </Card >
     );
 }
 

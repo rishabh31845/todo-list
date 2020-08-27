@@ -1,32 +1,20 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Typography, Grid } from '@material-ui/core';
-import { makeStyles, withStyles } from '@material-ui/core/styles';
-import ListSubheader from '@material-ui/core/ListSubheader';
+import { Typography, Grid, Checkbox, ListItem, ListSubheader } from '@material-ui/core';
+import { makeStyles } from '@material-ui/core/styles';
 import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
 import AccessTimeIcon from '@material-ui/icons/AccessTime';
 import ErrorIcon from '@material-ui/icons/Error';
-import Checkbox from '@material-ui/core/Checkbox';
 import { getDateTime, sortItemsByString } from '../../common/functionalHelper';
 
 const useStyles = makeStyles((theme) => ({
     root: {
         width: '100%',
-        minWidth: 360,
+        // minWidth: 360,
         backgroundColor: theme.palette.background.paper,
-    },
-    nested: {
-        paddingLeft: theme.spacing(1),
     },
     strikeThrough: {
         textDecorationLine: 'line-through',
-        paddingLeft: theme.spacing(1)
-    },
-    subHeading: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        width: '60%'
     },
     time: {
         color: theme.palette.error.main
@@ -34,39 +22,60 @@ const useStyles = makeStyles((theme) => ({
     noteCheckBox: {
         padding: 'unset',
         fontSize: '16px'
+    },
+    subListHeader: {
+        lineHeight: '12px'
+    },
+    noteListItem: {
+        paddingTop: 'unset',
+        paddingBottom: 'unset'
+    },
+    criticalPriority: {
+        color: '#FFB5BC',
+        marginTop: '4px'
+    },
+    highPriority: {
+        color: '#FFDB99',
+        marginTop: '4px'
+    },
+    lowPriority: {
+        color: '#B8E4FD',
+        marginTop: '4px'
     }
 }));
 
-const NoteCheckbox = withStyles({
-    root: {
-        padding: 'unset',
-        fontSize: '16px'
-    }
-})(Checkbox);
-
-const NoteListItem = withStyles({
-    root: {
-        paddingTop: 'unset',
-        paddingBottom: 'unset'
-    }
-})(ListItem);
-
 const getListSubHeading = (dateTime, styleClass) => (
-    <div className={styleClass.subHeading}>
-        <Typography variant="caption" display="block">
-            {getDateTime(dateTime, 'DD MMM YYYY')}
-        </Typography>
-        <AccessTimeIcon fontSize='inherit' />
-        <Typography className={styleClass.time} variant="caption" display="block">
-            {getDateTime(dateTime, 'hh:mm a')}
-        </Typography>
-    </div>
+    <Grid alignItems='center' container spacing={1} classes={{ root: styleClass.subListHeader }}>
+        <Grid item xs={3}>
+            <Typography variant="caption">
+                {getDateTime(dateTime, 'DD MMM YYYY')}
+            </Typography>
+        </Grid>
+        <Grid item xs={1}>
+            <AccessTimeIcon fontSize='inherit' />
+        </Grid>
+        <Grid item xs={4}>
+            <Typography className={styleClass.time} variant="caption">
+                {getDateTime(dateTime, 'hh:mm a')}
+            </Typography>
+        </Grid>
+    </Grid>
 );
 
 const getNote = (note, styleClass, handleCheckList) => {
+
+    const getPriorityColor = (priority) => {
+        switch (priority) {
+            case 'Critical': return 'criticalPriority'
+            case 'High': return 'highPriority'
+            case 'Low': return 'lowPriority'
+            default: break
+        }
+    }
+
     return (
         <Grid container spacing={1}>
-            <Grid item xs={2}>
+            <Grid item xs={1}>
                 <Checkbox
                     // edge="start"
                     checked={note.status === 'close' ? true : false}
@@ -77,8 +86,8 @@ const getNote = (note, styleClass, handleCheckList) => {
                 // inputProps={{ 'aria-labelledby': labelId }}
                 />
             </Grid>
-            <Grid item xs={1}>
-                <ErrorIcon fontSize='inherit'></ErrorIcon>
+            <Grid container direction='row' justify='center' item xs={1}>
+                <ErrorIcon classes={{ root: styleClass[getPriorityColor(note.priority)] }} fontSize='inherit'></ErrorIcon>
             </Grid>
             <Grid item xs={9}>
                 {
@@ -86,7 +95,7 @@ const getNote = (note, styleClass, handleCheckList) => {
                         <Typography className={styleClass.strikeThrough} variant="body2">
                             {note.text}
                         </Typography> :
-                        <Typography className={styleClass.nested} variant="body2">
+                        <Typography variant="body2">
                             {note.text}
                         </Typography>
                 }
@@ -111,9 +120,9 @@ const getSubList = (heading, notes, styleClass, handleCheckList) => {
         >
             {
                 sortedNotes.map(note => (
-                    <NoteListItem key={note.id}>
+                    <ListItem key={note.id}>
                         {getNote(note, styleClass, handleCheckList)}
-                    </NoteListItem>
+                    </ListItem>
                 ))
             }
         </List>
@@ -123,9 +132,13 @@ const getSubList = (heading, notes, styleClass, handleCheckList) => {
 const NotesList = ({ notesData, handleCheckList }) => {
     const classes = useStyles();
     return (
-        Object.keys(notesData).map(noteKey => (
-            getSubList(noteKey, notesData[noteKey], classes, handleCheckList)
-        ))
+        <Grid container>
+            {
+                Object.keys(notesData).map(noteKey => (
+                    getSubList(noteKey, notesData[noteKey], classes, handleCheckList)
+                ))
+            }
+        </Grid>
     );
 }
 
